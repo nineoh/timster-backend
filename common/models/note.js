@@ -1,2 +1,2 @@
-module.exports = function(Note) {
+module.exports = function(note) {
 };
