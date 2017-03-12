@@ -1,5 +1,5 @@
 {
-  "name": "Note",
+  "name": "note",
   "properties": {
     "title": {
       "type": "string",
