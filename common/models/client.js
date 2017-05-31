@@ -1,4 +1,9 @@
+var bcrypt = require('bcrypt');
+
 module.exports = function(Client) {
+    const saltRounds = 5;
+
+    const hashPassword = (password) => bcrypt.hash(password , saltRounds);
 
     Client.prototype.updateSkills = function(skills, cb){
         console.log('updateSkills', skills);
@@ -12,17 +17,32 @@ module.exports = function(Client) {
     });
 
     Client.login = (username, password, cb) => {
-
-        return Client.find({
-            where: {and: [{username: username } , {password: password}] }
+        return  Client.find({
+           where: {username: username }
         }, (err, resp) => {
-                console.log('xClient.found resolve test err' , err);
-                console.log('xClient.found resolve test' , resp);
-                if(err) cb(null,{});
+                console.log('Client.found resolve test err' , err);
 
-                cb(null , resp);
-        });        
+                if(err) {
+                    cb(null,{});
+                    return;
+                }
+
+                bcrypt.compare(password, resp[0].password ).then( res => {
+                    if( !res ){
+                        cb(null,{});
+                    }else{
+                        cb(null , resp);
+                    }
+                });
+        });
     };
+
+    Client.observe('before save', (ctx, next) => {
+         hashPassword(ctx.instance.password).then( (hash) => {
+            ctx.instance.password = hash;
+            next();
+        });
+    });
 
     Client.remoteMethod('login', {
         description: 'Login the client',
